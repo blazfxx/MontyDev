@@ -29,7 +29,10 @@ income_page = st.Page("income.py", title="Financial Health", icon="💸")
 
 
 if st.session_state.logged_in == False:
-    pg = st.navigation([home_page, music_page, login_page])
+    pg = st.navigation({
+        "Main": [home_page, health_page, serious_page, music_page, login_page],
+        "Tools": [utils_page, other_page],
+    })
 
 elif st.session_state.is_student:
     pg = st.navigation({
