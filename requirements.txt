@@ -6,3 +6,7 @@ bcrypt
 qrcode
 Pillow
 plotly
+transformers
+torch
+sentencepiece
+accelerate
