@@ -5,7 +5,7 @@ import time
 import pandas as pd
 from ytmusicapi import YTMusic
 from streamlit_chat_animated import message
-from database import verify_user, username_available, update_username, update_password, update_profession, update_user_type
+from database import verify_user, username_available, update_username, update_password, update_user_type
 
 with st.sidebar:
     st.info("Navigate using the menu above 👆")
@@ -14,6 +14,8 @@ with st.sidebar:
     st.session_state.setdefault('username', None)
     st.session_state.setdefault('is_student', False)
     st.session_state.setdefault('is_adult', False)
+    st.session_state.setdefault('is_buisness', False)
+
     if st.session_state.get('logged_in'):
         st.success(f"Signed in as {st.session_state.get('username')}")
         if st.button("Sign Out", key="signout_health"):
@@ -42,8 +44,6 @@ with st.container():
         st.subheader("Account Settings")
         st.markdown("Manage your username, password, and account type here.")
         current_username = st.session_state.get('username')
-        current_profession = st.session_state.get('profession', '')
-
 col1, col2 = st.columns(2)
 
 with col1:
@@ -89,9 +89,9 @@ with col2:
 
 with st.container():
         st.markdown("### User Type")
-        current_type = "Student" if st.session_state.get('is_student') else ("Adult" if st.session_state.get('is_adult') else "Student")
+        current_type = "Student" if st.session_state.get('is_student') else ("Adult" if st.session_state.get('is_adult') else ("Buisness" if st.session_state.get('is_buisness') else "Student"))
         index = 0 if st.session_state.get('is_student') else (1 if st.session_state.get('is_adult') else 0)
-        type_choice = st.selectbox("I am a:", options=["Student", "Adult"], index=index, key="type_choice_setting")
+        type_choice = st.selectbox("Account Type:", options=["Student", "Adult", "Buisness"], index=index, key="type_choice_setting")
         confirm_password_type = st.text_input("Confirm current password", type="password", key="curpwd_type_setting")
         if st.button("Change User Type"):
             if not confirm_password_type:
@@ -103,10 +103,12 @@ with st.container():
                 else:
                     is_student_flag = (type_choice == "Student")
                     is_adult_flag = (type_choice == "Adult")
-                    if update_user_type(current_username, is_student_flag, is_adult_flag):
+                    is_buisness_flag = (type_choice == "Buisness")
+                    if update_user_type(current_username, is_student_flag, is_adult_flag, is_buisness_flag):
                         st.success("Updated user type successfully.")
                         st.session_state['is_student'] = is_student_flag
                         st.session_state['is_adult'] = is_adult_flag
+                        st.session_state['is_buisness'] = is_buisness_flag
                         safe_rerun()
                     else:
                         st.error("Failed to update user type. Try again.")

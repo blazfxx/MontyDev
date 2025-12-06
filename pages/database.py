@@ -1,18 +1,23 @@
 
 import sqlite3
 import bcrypt
+import os
 
-DATABASE_NAME = 'users.db'
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_NAME = os.path.join(BASE_DIR, "users.db")
 
 def get_db_connection():
     return sqlite3.connect(DATABASE_NAME)
+
 
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, student BOOLEAN DEFAULT 0, adult BOOLEAN DEFAULT 0, profession TEXT DEFAULT ''
-        )
+        CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, email TEXT UNIQUE NOT NULL, password TEXT NOT NULL, student BOOLEAN DEFAULT 0, adult BOOLEAN DEFAULT 0, buisness BOOLEAN DEFAULT 0
+                   );
     ''')
     conn.commit()
     conn.close()
@@ -32,7 +37,7 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_user(username, email, password, student, adult):
+def add_user(username, email, password, student, adult, buisness):
     password_bytes = password.encode('utf-8')
     hashed_psw = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
     hashed_psw_str = hashed_psw.decode('utf-8')
@@ -40,7 +45,7 @@ def add_user(username, email, password, student, adult):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, email, password, student, adult, profession) VALUES (?, ?, ?, ?, ?, ?)', (username, email, hashed_psw_str, student, adult))
+        cursor.execute('INSERT INTO users (username, email, password, student, adult, buisness) VALUES (?, ?, ?, ?, ?, ?)', (username, email, hashed_psw_str, student, adult, buisness))
         conn.commit()
         conn.close()
         return True
@@ -52,7 +57,7 @@ def verify_user(username, password):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    cursor.execute('SELECT password, student, adult, profession FROM users WHERE username = ?', (username,))
+    cursor.execute('SELECT password, student, adult, buisness FROM users WHERE username = ?', (username,))
     user_data = cursor.fetchone()
     conn.close()
 
@@ -63,9 +68,10 @@ def verify_user(username, password):
                 "verified": True,
                 "is_student": bool(user_data[1]),
                 "is_adult": bool(user_data[2]),
+                "is_buisness": bool(user_data[3])
                 }
     
-    return {"verified": False, "is_student": False, "is_adult": False}
+    return {"verified": False, "is_student": False, "is_adult": False, "is_buisness": False}
 
 
 def username_available(username):
@@ -110,16 +116,11 @@ def update_password(username, current_password, new_password):
 
 
 
-def update_user_type(username, is_student, is_adult):
-    """Set the user type flags for a given username.
-
-    Accepts boolean flags for is_student and is_adult. Returns True if the
-    update affected a row, False otherwise.
-    """
+def update_user_type(username, is_student, is_adult, is_buisness):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('UPDATE users SET student = ?, adult = ? WHERE username = ?', (int(bool(is_student)), int(bool(is_adult)), username))
+        cursor.execute('UPDATE users SET student = ?, adult = ?, buisness = ? WHERE username = ?', (int(bool(is_student)), int(bool(is_adult)), (int(bool(is_buisness))), username))
         conn.commit()
         updated = cursor.rowcount > 0
         conn.close()

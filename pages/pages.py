@@ -25,23 +25,29 @@ utils_page = st.Page("Utilities.py", title="Utilities", icon="🛠️")
 other_page = st.Page("other.py", title="Other", icon="❓")
 settings_page = st.Page("settings.py", title="Settings", icon="⚙️")
 
-income_page = st.Page("income.py", title="Financial Health", icon="💸")
-ai_page = st.Page("ai.py", title="AI Summarizer", icon="📝")
+income_page = st.Page("income.py", title="Finance Tracker", icon="💸")
+
+flashcardai_page = st.Page("flashcardai.py", title ="Flashcard AI", icon="🃏")
+ai_page = st.Page("ai.py", title="AI Tools", icon="🧠")
+financeai_page = st.Page("financeai.py", title="Finance AI", icon="📝")
+codeeai_page = st.Page("codingai.py", title="Coding AI", icon="🤖")
+
+socials_page = st.Page("social.py", title="Socials", icon="🧑‍🧑‍🧒‍🧒")
 
 
 if st.session_state.logged_in == False:
     pg = st.navigation({
         "Main": [home_page, health_page, serious_page, music_page,],
-        "Tools": [utils_page, other_page, ai_page],
+        "Tools": [utils_page, other_page, ai_page, financeai_page],
         "Account": [login_page],
     })
 
 elif st.session_state.is_student:
     pg = st.navigation({
         "Main": [home_page],
-        "Default Pages": [health_page, serious_page],
+        "Default Pages": [health_page, serious_page,],
         "Cill": [music_page],
-        "Study":[flashcards_page, ai_page],
+        "Study":[flashcards_page, ai_page, flashcardai_page],
         "Tools": [utils_page, other_page],
         "Account": [settings_page],
     })
@@ -50,9 +56,19 @@ elif st.session_state.is_adult:
     pg = st.navigation({
         "Main": [home_page],
         "Default Pages": [health_page, serious_page],
-        "Work": [income_page],
+        "Work": [income_page, financeai_page],
         "Chill": [music_page],
-        "Tools": [utils_page, other_page, ai_page],
+        "Tools": [utils_page, other_page, ai_page, codeeai_page],
+        "Account": [settings_page],
+    })
+
+elif st.session_state.is_buisness:
+    pg = st.navigation({
+        "Main": [home_page],
+        "Default Pages": [health_page, serious_page],
+        "Work": [income_page, financeai_page, socials_page],
+        "Chill": [music_page],
+        "Tools": [utils_page, other_page, ai_page, codeeai_page],
         "Account": [settings_page],
     })
 

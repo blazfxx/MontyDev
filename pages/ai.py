@@ -2,12 +2,16 @@ import streamlit as st
 from transformers import pipeline
 import torch
 from database import save_summary, load_summaries, summary_db
-
+import ollama
+import numpy as np
+import pandas as pd
+import time
+from database import init_db
+import sqlite3
 
 summary_db()
 
-
-st.set_page_config(page_title="AI Summarizer", page_icon="📝")
+st.set_page_config(page_title="AI Tools", page_icon="🤖")
 
 with st.sidebar:
     st.header("All-in-one Kit")
@@ -25,18 +29,77 @@ with st.sidebar:
     else:
         st.write("Created by **Muhammad Khan**")
     
-    st.divider()
-    st.header("Technical Specs")
-    st.info("Model: LaMini-Flan-T5-248M")
 
 
-st.title("📝 AI Text Summarizer")
-st.caption("Paste a long article below to get a quick summary.")
 
-tab1, tab2 = st.tabs(["AI Text Summarizer", "Saved Summaries"])
+st.title("AI Tools")
+st.caption("Helpful AI tools :D")
 
+tab1, tab2, tab3 = st.tabs(["Private AI", "AI Text Summarizer", "Saved Summaries"])
 
 with tab1:
+    st.subheader("Private AI")
+    st.caption("Your data with the chatbot won't be saved for your own privacy :D")
+    
+
+    client = ollama.Client()
+    
+    think = st.checkbox("Think Longer", key="think")
+
+    if think == True:
+        model = "blazfoxx-plus"
+        st.info("Current model: blazfoxx-plus")
+    else:
+        model = "blazfoxx"
+        st.info("Current model: blazfoxx")
+
+    st.caption("To switch to a **thinking model**, please scroll up and tick the checkbox!")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    def stream_data():
+        stream = client.generate(model=model, prompt=prompt, stream=True)
+        for chunk in stream:
+            yield chunk["response"]
+
+    chat_container = st.container()
+
+    with chat_container:
+        for message in st.session_state.messages:
+            if message["content"]: 
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+
+    if st.session_state.get('logged_in'):
+        placeholder = f"Hey {st.session_state.get('username')}! What's on your mind today?"
+        if think == True:
+            placeholder = f"Hey {st.session_state.get('username')}! Using 'Think Longer'? I'm warning you, this one thinks longer about EVERYTHING"
+    else:
+        placeholder = "What's on your mind?"
+        if think == True:
+            placeholder = f"Hey! Using 'Think Longer'? I'm warning you, this one thinks longer about EVERYTHING"
+
+    if prompt := st.chat_input(placeholder):
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        
+        with chat_container:
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            with st.chat_message("assistant"):
+                if think == True:
+                    status = st.empty()
+                    status.write("Thinking...")
+                    response = st.write_stream(stream_data())
+                    status.empty()
+                else:
+                    response = st.write_stream(stream_data())
+        
+        st.session_state.messages.append({"role": "assistant", "content": response})
+
+with tab2:
+    st.subheader("AI Text Summarizer")
     @st.cache_resource
     def load_model():
         pipe = pipeline(
@@ -60,17 +123,14 @@ with tab1:
                     instruction = "Summarize this text: " + text_input
                     response = ai_pipe(instruction, max_length=512, min_length=50, do_sample=False)
                     
-                    # GET RESULT
                     final_summary = response[0]['generated_text']
 
-                    # CRITICAL FIX: Save to session state so we remember it
                     st.session_state['generated_summary'] = final_summary
                     st.session_state['original_text'] = text_input
 
                     st.subheader("Summary:")
                     st.success(final_summary)
 
-                    # Metrics
                     orig_len = len(text_input.split())
                     new_len = len(final_summary.split())
                     reduction = 100 - ((new_len / orig_len) * 100) if orig_len > 0 else 0
@@ -97,13 +157,7 @@ with tab1:
         else:
             st.markdown('<h5 style="text-align: right;">Log In to Save!</h5>', unsafe_allow_html=True)
 
-
-            
-        
-
-
-
-with tab2:
+with tab3:
     st.subheader("Saved Summaries")
 
     if st.session_state.get('logged_in'):
@@ -114,7 +168,7 @@ with tab2:
             for row in rows:
                 with st.expander(f"Summary from {row[2]}"):
                     st.write("**Original:**")
-                    st.caption(row[0][:100] + "Read Rset?")
+                    st.caption(row[0][:100] + "...")
                     st.divider()
                     st.write("**Summary:**")
                     st.success(row[1])

@@ -18,6 +18,19 @@ st.markdown("<h1 style='text-align: center;'>Sign In/Sign Up!</h1>", unsafe_allo
 st.markdown("<p style='text-align: center;'>Created by Muhammad Khan</p>", unsafe_allow_html=True)
 
 
+
+with st.sidebar:
+    st.header("All-in-one Kit")
+    if st.session_state.get('logged_in'):
+        st.success(f"Signed in as {st.session_state.get('username')}")
+        if st.button("Sign Out"):
+            st.session_state['logged_in'] = False
+            st.session_state['username'] = None
+            safe_rerun()
+            st.rerun()
+    else:
+        st.write("Created by **Muhammad Khan**")
+
 col1, col2 = st.columns(2)
 
 with col1:
@@ -30,6 +43,8 @@ with col1:
     st.session_state.setdefault('username', None)
     st.session_state.setdefault('is_student', False)
     st.session_state.setdefault('is_adult', False)
+    st.session_state.setdefault('is_buisness', False)
+    
     
 # In your main file (under the Sign In button)
 
@@ -49,7 +64,7 @@ with col1:
             # We save the type of user into the session state for later use
             st.session_state['is_student'] = auth_result['is_student']
             st.session_state['is_adult'] = auth_result['is_adult']
-            st.session_state['profession'] = auth_result.get('profession', '')
+            st.session_state['is_buisness'] = auth_result['is_buisness']
 
             st.success(f"Welcome back, {username}!")
             st.balloons()
@@ -65,7 +80,7 @@ with col2:
     st.text_input("Username", placeholder="Enter your username", key="username_signup")
     paswd1 = st.text_input("Password", type="password", placeholder="Enter your password", key="password_signup")
     paswd2 = st.text_input("Confirm Password", type="password", placeholder="Re-enter your password", key="confirm_password_signup")
-    st.selectbox("I am a:", options=["Student", "Adult"], key="user_type_signup")
+    st.selectbox("Account Type:", options=["Student", "Adult", "Buisness"], key="user_type_signup")
 
     if paswd1 != paswd2:
         st.error("Passwords dont match")
@@ -85,13 +100,13 @@ with col2:
         user_type = st.session_state.user_type_signup
         is_student = user_type == "Student"
         is_adult = user_type == "Adult"
+        is_buisnes = user_type == "Buisness"
 
-        if add_user(new_username, new_email, paswd1, is_student, is_adult):
+        if add_user(new_username, new_email, paswd1, is_student, is_adult, is_buisnes):
             st.success("Account created successfully! You can now sign in.")
             st.balloons()
             st.session_state['logged_in'] = True
             st.session_state['username'] = new_username
-            st.experimental_rerun()
             st.rerun()
         else:
             st.error("Username or email already exists. Please try again with different credentials.")

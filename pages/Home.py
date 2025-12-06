@@ -9,6 +9,8 @@ from database import init_db, init_finance_db
 import streamlit as st
 import time
 
+
+
 init_db()
 init_finance_db()
 
@@ -18,7 +20,6 @@ st.session_state.setdefault('is_student', False)
 st.session_state.setdefault('is_adult', False)
 
 with st.sidebar:
-    st.info("Navigate using the menu above 👆")
     st.header("All-in-one Kit")
     if st.session_state.get('logged_in'):
         st.success(f"Signed in as {st.session_state.get('username')}")
